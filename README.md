@@ -36,8 +36,9 @@ Node Exporter → Prometheus → Alertmanager → webhook.py → mock_itsm.py
 |---|---|---|---|---|
 | HighCPUUsage | CPU % | > 2 | warning | P2 |
 | HighRAMUsage | RAM % | > 10 | critical | P1 |
-Thresholds are intentionally low for lab testing.
----
+
+Note that thresholds are intentionally low for lab testing.
+
 ## Key features
 **Enrichment**
 webhook.py adds priority, runbook URL, and timestamp to every raw 
