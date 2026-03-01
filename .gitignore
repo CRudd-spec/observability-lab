@@ -1,0 +1,9 @@
+nano .gitignore
+```
+
+Add this content:
+```
+venv/
+seen_fingerprints.json
+__pycache__/
+*.pyc
