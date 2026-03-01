@@ -1,8 +1,8 @@
-# observability-lab
+## observability-lab
 A local host only observability pipeline built to simulate how real monitoring 
 infrastructure generates, routes, and resolves incidents automatically.
 Built as a hands-on learning project for SRE/Observability Engineering roles.
----
+
 ## What this does
 Runs a full alert-to-ticket pipeline using open source monitoring tools 
 and a custom Python webhook. When a metric threshold is breached, the 
@@ -10,7 +10,7 @@ pipeline detects it, enriches the alert with operational context, routes
 it to the correct queue based on priority, creates a mock ITSM ticket, 
 and resolves it automatically when the condition clears.
 Fully automated with no manual intervention required at any stage.
----
+
 ## Stack
 | Component | Purpose | Port |
 |---|---|---|
@@ -20,7 +20,7 @@ Fully automated with no manual intervention required at any stage.
 | Node Exporter | Host system metrics (CPU, RAM, disk) | 9100 |
 | webhook.py | Alert enrichment, deduplication, routing | 5001 |
 | mock_itsm.py | Simulated ITSM ticket system with browser UI | 5002 |
----
+
 ## Pipeline flow
 Node Exporter → Prometheus → Alertmanager → webhook.py → mock_itsm.py
   (metrics)      (evaluate)    (route)       (enrich)     (ticket)
