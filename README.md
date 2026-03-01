@@ -24,6 +24,7 @@ Fully automated with no manual intervention required at any stage.
 ## Pipeline flow
 Node Exporter → Prometheus → Alertmanager → webhook.py → mock_itsm.py
   (metrics)      (evaluate)    (route)       (enrich)     (ticket)
+  
 1. Node Exporter exposes host metrics
 2. Prometheus scrapes every 15 seconds and evaluates alert rules
 3. When a rule fires, Prometheus hands the alert to Alertmanager
@@ -62,7 +63,7 @@ from the open table to the resolved table in the browser UI.
 cd ~/lab
 sudo docker-compose up -d
 ```
-**Start the webhook and mock ITSM (separate terminals, venv activated):**
+**Start the webhook and mock ITSM (separate terminals, venv is used):**
 ```bash
 source ~/lab/venv/bin/activate
 python webhook.py
