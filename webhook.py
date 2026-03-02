@@ -2,6 +2,7 @@ from flask import Flask, request, json
 from datetime import datetime, timezone
 import requests
 import os
+from servicenow import create_incident
 
 app = Flask(__name__)
 
@@ -69,12 +70,12 @@ def alert():
             if fingerprint in seen_fingerprints:
                 try:
                     response = requests.post(ITSM_RESOLVE_URL, json={"fingerprint": fingerprint}, timeout=5)
-                    print(f"ITSM resolve response: {response.status_code} - {response.json()}")
+                    print(f"[MOCK ITSM] Resolve response: {response.status_code} - {response.json()}")
                     seen_fingerprints.discard(fingerprint)
                     save_fingerprints(seen_fingerprints)
                     print(f"[DEDUP] Fingerprint {fingerprint} cleared and file updated")
                 except requests.exceptions.RequestException as e:
-                    print(f"Failed to reach ITSM for resolve: {e}")
+                    print(f"[MOCK ITSM] Failed to reach mock ITSM for resolve: {e}")
             else:
                 print(f"[RESOLVED] Fingerprint {fingerprint} not in seen set - no ticket to close")
             continue
@@ -90,15 +91,20 @@ def alert():
 
         itsm_url = get_itsm_url(enriched["priority"])
 
+        # Post to mock ITSM
         try:
             response = requests.post(itsm_url, json=enriched, timeout=5)
             ticket = response.json()
-            print(f"ITSM response: {response.status_code} - {ticket}")
-            seen_fingerprints.add(fingerprint)
-            save_fingerprints(seen_fingerprints)
-            print(f"[DEDUP] Fingerprint {fingerprint} stored and file updated")
+            print(f"[MOCK ITSM] Response: {response.status_code} - {ticket}")
         except requests.exceptions.RequestException as e:
-            print(f"Failed to reach ITSM: {e}")
+            print(f"[MOCK ITSM] Failed: {e}")
+
+        # Post to ServiceNow
+        create_incident(enriched)
+
+        seen_fingerprints.add(fingerprint)
+        save_fingerprints(seen_fingerprints)
+        print(f"[DEDUP] Fingerprint {fingerprint} stored and file updated")
 
     return "OK", 200
 

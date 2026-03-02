@@ -20,6 +20,7 @@ Fully automated with no manual intervention required at any stage.
 | Node Exporter | Host system metrics (CPU, RAM, disk) | 9100 |
 | webhook.py | Alert enrichment, deduplication, routing | 5001 |
 | mock_itsm.py | Simulated ITSM ticket system with browser UI | 5002 |
+| ServiceNow | Enterprise ITSM incident creation | External |
 
 ## Pipeline flow
 Node Exporter → Prometheus → Alertmanager → webhook.py → mock_itsm.py
@@ -35,7 +36,7 @@ Node Exporter → Prometheus → Alertmanager → webhook.py → mock_itsm.py
 ## Example Alert rules
 | Alert | Metric | Threshold | Severity | Priority |
 |---|---|---|---|---|
-| HighCPUUsage | CPU % | > 2 | warning | P2 |
+| HighCPUUsage | CPU % | > 10 | warning | P2 |
 | HighRAMUsage | RAM % | > 10 | critical | P1 |
 
 Note that thresholds are intentionally low for lab testing.
@@ -79,6 +80,8 @@ python mock_itsm.py
 - Mock ITSM: http://localhost:5002
 ---
 ## Known limitations
+- ServiceNow resolution handling not yet implemented and alerts resolve in 
+  mock ITSM but ServiceNow incidents are not automatically closed
 - Mock ITSM state is in-memory only and restarting mock_itsm.py clears 
   all tickets
 - Fingerprint dedup is persistent but if the same alert fires after 
