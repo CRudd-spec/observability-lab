@@ -23,7 +23,7 @@ Fully automated with no manual intervention required at any stage.
 | ServiceNow | Enterprise ITSM incident creation | External |
 
 ## Pipeline flow
-Node Exporter → Prometheus → Alertmanager → webhook.py → mock_itsm.py
+Node Exporter → Prometheus → Alertmanager → webhook.py → External Platforms
   (metrics)      (evaluate)    (route)       (enrich)     (ticket)
   
 1. Node Exporter exposes host metrics
@@ -31,7 +31,8 @@ Node Exporter → Prometheus → Alertmanager → webhook.py → mock_itsm.py
 3. When a rule fires, Prometheus hands the alert to Alertmanager
 4. Alertmanager POSTs the payload to the Flask webhook on the host
 5. webhook.py enriches the alert and routes it based on priority
-6. mock_itsm.py creates a ticket and serves a live browser view
+6. Ticket is created in mock_itsm.py (local) or ServiceNow (external) depending on routing config
+7. pagerduty.py currently points to mock_itsm but is intended to be similar to servicenow.py with access to the platform.
 ---
 ## Example Alert rules
 | Alert | Metric | Threshold | Severity | Priority |

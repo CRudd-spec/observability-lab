@@ -23,6 +23,7 @@ def build_snow_payload(enriched):
         "description": description,
         "urgency": urgency,
         "impact": impact
+   
     }
 
 def create_incident(enriched):
