@@ -1,9 +1,9 @@
 import requests
 
-SNOW_INSTANCE = "Your Instance"
+SNOW_INSTANCE = "Your instance"
 SNOW_INCIDENT_URL = f"{SNOW_INSTANCE}/api/now/table/incident"
-SNOW_USER = "your user ID"
-SNOW_PASS = r"your password"
+SNOW_USER = "Username"
+SNOW_PASS = r"Password"
 SNOW_HEADERS = {
     "Accept": "application/json",
     "Content-Type": "application/json"
@@ -22,10 +22,9 @@ def build_snow_payload(enriched):
         "short_description": enriched.get("incident_title"),
         "description": description,
         "urgency": urgency,
-        "impact": impact
-   
-    }
-
+        "impact": impact,
+        "correlation_id": enriched.get("fingerprint")
+        }
 def create_incident(enriched):
     print(f"[SNOW] Attempting to create incident...")
     snow_payload = build_snow_payload(enriched)
