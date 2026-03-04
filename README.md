@@ -1,7 +1,7 @@
 ## observability-lab
 A local host only observability pipeline built to simulate how real monitoring 
 infrastructure generates, routes, and resolves incidents automatically.
-Built as a hands-on learning project for SRE/Observability Engineering roles.
+Built as a hands-on learning project for integration/automation roles.
 
 ## What this does
 Runs a full alert-to-ticket pipeline using open source monitoring tools 
