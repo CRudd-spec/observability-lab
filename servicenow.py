@@ -1,9 +1,10 @@
 import requests
+import os
 
-SNOW_INSTANCE = "Your instance"
+SNOW_INSTANCE = os.environ.get("SNOW_INSTANCE", "")
 SNOW_INCIDENT_URL = f"{SNOW_INSTANCE}/api/now/table/incident"
-SNOW_USER = "Username"
-SNOW_PASS = r"Password"
+SNOW_USER = os.environ.get("SNOW_USER", "")
+SNOW_PASS = os.environ.get("SNOW_PASS", "")
 SNOW_HEADERS = {
     "Accept": "application/json",
     "Content-Type": "application/json"

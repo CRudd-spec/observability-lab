@@ -9,6 +9,7 @@ app = Flask(__name__)
 ITSM_CRITICAL_URL = "http://localhost:5002/tickets/critical"
 ITSM_STANDARD_URL = "http://localhost:5002/tickets/standard"
 ITSM_RESOLVE_URL = "http://localhost:5002/tickets/resolve"
+OLLAMA_URL = "http://localhost:11434/api/generate"
 
 FINGERPRINT_FILE = os.path.join(os.path.dirname(__file__), "seen_fingerprints.json")
 
@@ -41,6 +42,34 @@ def enrich_alert(alert):
         "priority": "P2" if alert["labels"].get("severity") == "warning" else "P1"
     }
     return enriched
+
+def llm_enrich_alert(enriched):
+    prompt = f"""You are an IT operations assistant. Analyze this alert and respond ONLY with a JSON object containing exactly these three keys:
+- "llm_summary": one sentence describing what is happening
+- "llm_likely_cause": one sentence describing the most likely cause
+- "llm_suggested_severity": one word, either low, medium, high, or critical
+
+Alert: {json.dumps(enriched)}
+
+Respond with valid JSON only, no extra text."""
+
+    try:
+        response = requests.post(OLLAMA_URL, json={
+            "model": "mistral",
+            "prompt": prompt,
+            "stream": False
+        }, timeout=30)
+        raw = response.json().get("response", "")
+        print(f"[LLM] Raw response: {raw}")
+        llm_data = json.loads(raw)
+        return llm_data
+    except Exception as e:
+        print(f"[LLM] Enrichment failed: {e}")
+        return {
+            "llm_summary": "LLM enrichment unavailable",
+            "llm_likely_cause": "LLM enrichment unavailable",
+            "llm_suggested_severity": "unknown"
+        }
 
 def get_itsm_url(priority):
     if priority == "P1":
@@ -86,6 +115,13 @@ def alert():
 
         enriched = enrich_alert(alert_item)
         enriched["fingerprint"] = fingerprint
+
+        # LLM enrichment
+        print(f"[LLM] Enriching alert with Ollama...")
+        llm_data = llm_enrich_alert(enriched)
+        enriched.update(llm_data)
+        print(f"[LLM] Enrichment complete: {llm_data}")
+
         print("\n--- Enriched Incident ---")
         print(json.dumps(enriched, indent=2))
 

@@ -1,6 +1,7 @@
 from flask import Flask, request, json
 from datetime import datetime, timezone
 import requests
+import os
 
 app = Flask(__name__)
 
@@ -17,7 +18,7 @@ def build_pg_payload(alert):
     raw_severity = alert["labels"].get("severity", "info").lower()
     
     enriched = {
-        "routing_key": "<integration_key>",
+        "routing_key": os.environ.get("PAGERDUTY_ROUTING_KEY", ""),
         "event_action": "trigger",
         "dedup_key": alert.get("fingerprint"),
         "payload": {

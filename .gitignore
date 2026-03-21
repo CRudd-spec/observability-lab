@@ -2,3 +2,4 @@ venv/
 seen_fingerprints.json
 __pycache__/
 *.pyc
+.env

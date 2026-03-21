@@ -13,11 +13,11 @@ resolved_tickets = []
 def view_tickets():
     open_rows = ""
     for t in open_tickets:
-        open_rows += f"<tr><td>{t['ticket_id']}</td><td>{t['queue']}</td><td>{t['title']}</td><td>{t['created_at']}</td></tr>"
+        open_rows += f"<tr><td>{t['ticket_id']}</td><td>{t['queue']}</td><td>{t['title']}</td><td>{t['created_at']}</td><td>{t.get('llm_summary','N/A')}</td><td>{t.get('llm_likely_cause','N/A')}</td><td>{t.get('llm_suggested_severity','N/A')}</td></tr>"
 
     resolved_rows = ""
     for t in resolved_tickets:
-        resolved_rows += f"<tr><td>{t['ticket_id']}</td><td>{t['queue']}</td><td>{t['title']}</td><td>{t['created_at']}</td><td>{t['resolved_at']}</td></tr>"
+        resolved_rows += f"<tr><td>{t['ticket_id']}</td><td>{t['queue']}</td><td>{t['title']}</td><td>{t['created_at']}</td><td>{t.get('llm_summary','N/A')}</td><td>{t.get('llm_likely_cause','N/A')}</td><td>{t.get('llm_suggested_severity','N/A')}</td><td>{t['resolved_at']}</td></tr>"
 
     html = f"""
     <html>
@@ -25,7 +25,7 @@ def view_tickets():
     <body>
     <h2>Open Tickets ({len(open_tickets)})</h2>
     <table border="1" cellpadding="8">
-        <tr><th>Ticket ID</th><th>Queue</th><th>Title</th><th>Created At</th></tr>
+        <tr><th>Ticket ID</th><th>Queue</th><th>Title</th><th>Created At</th><th>LLM Summary</th><th>Likely Cause</th><th>LLM Severity</th></tr>
         {open_rows}
     </table>
 
@@ -33,7 +33,7 @@ def view_tickets():
 
     <h2>Resolved Tickets ({len(resolved_tickets)})</h2>
     <table border="1" cellpadding="8">
-        <tr><th>Ticket ID</th><th>Queue</th><th>Title</th><th>Created At</th><th>Resolved At</th></tr>
+        <tr><th>Ticket ID</th><th>Queue</th><th>Title</th><th>Created At</th><th>LLM Summary</th><th>Likely Cause</th><th>LLM Severity</th><th>Resolved At</th></tr>
         {resolved_rows}
     </table>
 
@@ -55,7 +55,10 @@ def create_critical_ticket():
         "queue": "critical",
         "title": data.get("incident_title", "unknown"),
         "fingerprint": data.get("fingerprint"),
-        "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "llm_summary": data.get("llm_summary", "N/A"),
+        "llm_likely_cause": data.get("llm_likely_cause", "N/A"),
+        "llm_suggested_severity": data.get("llm_suggested_severity", "N/A")
     })
     return jsonify({"ticket_id": ticket_id, "status": "created", "queue": "critical"}), 201
 
@@ -72,7 +75,10 @@ def create_standard_ticket():
         "queue": "standard",
         "title": data.get("incident_title", "unknown"),
         "fingerprint": data.get("fingerprint"),
-        "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "llm_summary": data.get("llm_summary", "N/A"),
+        "llm_likely_cause": data.get("llm_likely_cause", "N/A"),
+        "llm_suggested_severity": data.get("llm_suggested_severity", "N/A")
     })
     return jsonify({"ticket_id": ticket_id, "status": "created", "queue": "standard"}), 201
 

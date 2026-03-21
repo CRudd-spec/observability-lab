@@ -21,6 +21,7 @@ Fully automated with no manual intervention required at any stage.
 | webhook.py | Alert enrichment, deduplication, routing | 5001 |
 | mock_itsm.py | Simulated ITSM ticket system with browser UI | 5002 |
 | ServiceNow | Enterprise ITSM incident creation | External |
+| Ollama + Mistral | Local LLM enrichment (summary, likely cause, severity) | 11434 |
 
 ## Pipeline flow
 Node Exporter → Prometheus → Alertmanager → webhook.py → External Platforms
@@ -30,7 +31,7 @@ Node Exporter → Prometheus → Alertmanager → webhook.py → External Platfo
 2. Prometheus scrapes every 15 seconds and evaluates alert rules
 3. When a rule fires, Prometheus hands the alert to Alertmanager
 4. Alertmanager POSTs the payload to the Flask webhook on the host
-5. webhook.py enriches the alert and routes it based on priority
+5. webhook.py enriches the alert with operational context, calls local Ollama/Mistral for AI-generated summary, likely cause, and suggested severity, then routes based on priority.
 6. Ticket is created in mock_itsm.py (local) or ServiceNow (external) depending on routing config
 7. pagerduty.py currently points to mock_itsm but is intended to be similar to servicenow.py with access to the platform.
 ---
@@ -58,6 +59,11 @@ deduplication survives webhook restarts.
 When Alertmanager sends a resolved payload, the webhook clears the 
 fingerprint and notifies mock_itsm to close the ticket. The ticket moves 
 from the open table to the resolved table in the browser UI.
+**AI Enrichment**
+Before ticket creation, webhook.py calls a locally hosted Mistral LLM 
+via Ollama to generate a plain-language summary, likely cause, and 
+suggested severity for each alert. Runs entirely on-device with no 
+external API calls or data leaving the machine.
 ---
 ## Running it
 **Start the Docker stack:**
@@ -90,6 +96,7 @@ python mock_itsm.py
   concept of incident history beyond the current session
 - No authentication on any endpoint
 - Single node only alerting
+- LLM enrichment adds latency per alert (~5-15 seconds on CPU). Falls back gracefully if Ollama is unavailable.
 ---
 ## Related project
 Alert-Enrichment-Engine covers the same enrichment and deduplication 
