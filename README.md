@@ -18,15 +18,27 @@ Fully automated with no manual intervention required at any stage.
 | Grafana | Dashboard and visualization | 3000 |
 | Alertmanager | Alert routing and webhook dispatch | 9093 |
 | Node Exporter | Host system metrics (CPU, RAM, disk) | 9100 |
+| Loki | Log aggregation and storage | 3101 |
+| Promtail | Log collection agent — scrapes Docker containers via socket | — |
 | webhook.py | Alert enrichment, deduplication, routing | 5001 |
 | mock_itsm.py | Simulated ITSM ticket system with browser UI | 5002 |
 | ServiceNow | Enterprise ITSM incident creation | External |
 | Ollama + Mistral | Local LLM enrichment (summary, likely cause, severity) | 11434 |
 
 ## Pipeline flow
+
+**Metrics and alerting:**
+```
 Node Exporter → Prometheus → Alertmanager → webhook.py → External Platforms
   (metrics)      (evaluate)    (route)       (enrich)     (ticket)
-  
+```
+
+**Log pipeline:**
+```
+Docker containers → Promtail → Loki → Grafana
+   (stdout/stderr)  (collect)  (store)  (query)
+```
+
 1. Node Exporter exposes host metrics
 2. Prometheus scrapes every 15 seconds and evaluates alert rules
 3. When a rule fires, Prometheus hands the alert to Alertmanager
@@ -34,6 +46,20 @@ Node Exporter → Prometheus → Alertmanager → webhook.py → External Platfo
 5. webhook.py enriches the alert with operational context, calls local Ollama/Mistral for AI-generated summary, likely cause, and suggested severity, then routes based on priority.
 6. Ticket is created in mock_itsm.py (local) or ServiceNow (external) depending on routing config
 7. pagerduty.py currently points to mock_itsm but is intended to be similar to servicenow.py with access to the platform.
+
+## Log pipeline
+Promtail collects container logs by connecting to the Docker socket (`/var/run/docker.sock`) using Docker service discovery. It polls for running containers every 5 seconds and tails their stdout/stderr streams directly from `/var/lib/docker/containers`.
+
+**Label enrichment via Docker service discovery:**
+Each log line is labelled automatically from container metadata before being shipped to Loki:
+- `container` — the container name (e.g. `prometheus`, `alertmanager`)
+- `stream` — stdout or stderr
+- `service` — the Docker Compose service name
+
+This means in Grafana you can filter logs by `{service="webhook"}` or `{container="loki"}` without any manual configuration. Loki stores the logs on disk under a named volume (`loki-data`) and is queryable from Grafana using LogQL.
+
+> Note: Loki runs as `user: "0"` (root) in this lab to allow WAL and compactor directory creation on the named volume. Do not use this in production.
+
 ---
 ## Example Alert rules
 | Alert | Metric | Threshold | Severity | Priority |
